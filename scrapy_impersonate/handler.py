@@ -20,14 +20,12 @@ class ImpersonateDownloadHandler(HTTPDownloadHandler):
         settings = crawler.settings
         super().__init__(settings=settings, crawler=crawler)
 
-        verify_installed_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
-
     @classmethod
     def from_crawler(cls: Type[ImpersonateHandler], crawler: Crawler) -> ImpersonateHandler:
         return cls(crawler)
 
     def download_request(self, request: Request, spider: Spider) -> Deferred:
-        if request.meta.get("impersonate"):
+        if request.meta.get("impersonate") or request.meta.get('impersonate_args'):
             return self._download_request(request, spider)
 
         return super().download_request(request, spider)
