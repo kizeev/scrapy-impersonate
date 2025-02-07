@@ -1,6 +1,6 @@
 from typing import Type, TypeVar
 
-from curl_cffi.requests import AsyncSession
+from curl_cffi.requests import AsyncSession, exceptions as curl_exceptions
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Headers, Request, Response
@@ -35,7 +35,13 @@ class ImpersonateDownloadHandler(HTTPDownloadHandler):
         curl_options = CurlOptionsParser(request).as_dict()
         async with AsyncSession(max_clients=1, curl_options=curl_options) as client:
             request_args = RequestParser(request).as_dict()
-            response = await client.request(**request_args)
+            try:
+                response = await client.request(**request_args)
+            except curl_exceptions:
+                return Response(
+                    url=request.url,
+                    status=500,
+                )
 
         headers = Headers(response.headers.multi_items())
         headers.pop("Content-Encoding", None)
