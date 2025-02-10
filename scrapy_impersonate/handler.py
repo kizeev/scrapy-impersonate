@@ -38,7 +38,7 @@ class ImpersonateDownloadHandler(HTTPDownloadHandler):
             try:
                 response = await client.request(**request_args)
             except RequestException:
-                return Response(url=request.url, status=400)
+                return Response(url=request.url, status=532)
 
         headers = Headers(response.headers.multi_items())
         headers.pop("Content-Encoding", None)
