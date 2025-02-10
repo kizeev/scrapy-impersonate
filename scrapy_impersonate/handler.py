@@ -1,13 +1,13 @@
 from typing import Type, TypeVar
 
-from curl_cffi.requests import AsyncSession, exceptions as curl_exceptions
+from curl_cffi.requests.exceptions import RequestException
+from curl_cffi.requests import AsyncSession
 from scrapy.core.downloader.handlers.http import HTTPDownloadHandler
 from scrapy.crawler import Crawler
 from scrapy.http import Headers, Request, Response
 from scrapy.responsetypes import responsetypes
 from scrapy.spiders import Spider
 from scrapy.utils.defer import deferred_f_from_coro_f
-from scrapy.utils.reactor import verify_installed_reactor
 from twisted.internet.defer import Deferred
 
 from scrapy_impersonate.parser import CurlOptionsParser, RequestParser
@@ -37,11 +37,8 @@ class ImpersonateDownloadHandler(HTTPDownloadHandler):
             request_args = RequestParser(request).as_dict()
             try:
                 response = await client.request(**request_args)
-            except curl_exceptions:
-                return Response(
-                    url=request.url,
-                    status=500,
-                )
+            except RequestException:
+                return Response(url=request.url, status=400)
 
         headers = Headers(response.headers.multi_items())
         headers.pop("Content-Encoding", None)
