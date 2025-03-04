@@ -1,3 +1,5 @@
+import logging
+
 from typing import Type, TypeVar
 
 from curl_cffi.requests.exceptions import RequestException
@@ -11,6 +13,9 @@ from scrapy.utils.defer import deferred_f_from_coro_f
 from twisted.internet.defer import Deferred
 
 from scrapy_impersonate.parser import CurlOptionsParser, RequestParser
+
+
+logger = logging.getLogger(__name__)
 
 ImpersonateHandler = TypeVar("ImpersonateHandler", bound="ImpersonateDownloadHandler")
 
@@ -37,7 +42,8 @@ class ImpersonateDownloadHandler(HTTPDownloadHandler):
             request_args = RequestParser(request).as_dict()
             try:
                 response = await client.request(**request_args)
-            except RequestException:
+            except RequestException as e:
+                logger.info(f'{e}')
                 return Response(url=request.url, status=532)
 
         headers = Headers(response.headers.multi_items())
